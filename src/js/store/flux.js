@@ -1,43 +1,84 @@
 const getState = ({ getStore, getActions, setStore }) => {
 	return {
 		store: {
-			demo: [
-				{
-					title: "FIRST",
-					background: "white",
-					initial: "white"
-				},
-				{
-					title: "SECOND",
-					background: "white",
-					initial: "white"
-				}
-			]
+			agenda: [],
+			urlApi: "http://playground.4geeks.com/contact/agendas"
 		},
 		actions: {
 			// Use getActions to call a function within a fuction
-			exampleFunction: () => {
-				getActions().changeColor(0, "green");
-			},
-			loadSomeData: () => {
-				/**
-					fetch().then().then(data => setStore({ "foo": data.bar }))
-				*/
-			},
-			changeColor: (index, color) => {
-				//get the store
-				const store = getStore();
+			createUser: async () => {
+				const { urlApi } = getStore();
+				try {
+					const response = await fetch(`${urlApi}/fabricio`,
+						{ method: "POST" }
+					)
+					if (!response.ok) {
+						throw new Error("error creando el usuario");
+					}
+					const data = await response.json();
 
-				//we have to loop the entire demo array to look for the respective index
-				//and change its color
-				const demo = store.demo.map((elm, i) => {
-					if (i === index) elm.background = color;
-					return elm;
-				});
+				} catch (error) {
+					console.log(error);
 
-				//reset the global store
-				setStore({ demo: demo });
-			}
+				}
+			},
+			getContact: async () => {
+				const { urlApi } = getStore();
+				try {
+					const response = await fetch(`${urlApi}/fabricio/contacts`,
+						{ method: "GET" }
+					)
+					if (!response.ok) {
+						throw new Error("error accediendo a los contactos");
+					}
+					const data = await response.json();
+
+					setStore({ agenda: data.contacts });
+				} catch (error) {
+					console.log(error);
+
+				}
+			},
+			addContact: async (contact) => {
+				const { urlApi, agenda } = getStore();
+				try {
+					const response = await fetch(`${urlApi}/fabricio/contacts`,
+						{
+							method: "POST",
+							body: JSON.stringify(contact),
+							headers: { "Content-Type": "application/json" }
+						}
+					)
+					if (!response.ok) {
+						throw new Error("error creando contactos");
+					}
+					const data = await response.json();
+
+					setStore({ agenda: [...agenda, data] });
+					return true
+				} catch (error) {
+					alert(error)
+				}
+			},
+			deleteContact: async (id) => {
+				const { urlApi, agenda } = getStore();
+				try {
+					const response = await fetch(`${urlApi}/fabricio/contacts/${id}`,
+						{
+							method: "DELETE",
+						}
+					)
+					if (!response.ok) {
+						throw new Error("error eliminando el contacto");
+					}
+
+					setStore({ agenda: agenda.filter(contact => contact.id != id) });
+				} catch (error) {
+					alert(error)
+				}
+
+			},
+			editContact: async () => { },
 		}
 	};
 };
