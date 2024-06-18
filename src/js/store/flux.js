@@ -78,7 +78,32 @@ const getState = ({ getStore, getActions, setStore }) => {
 				}
 
 			},
-			editContact: async () => { },
+			editContact: async (id, contact) => {
+				const { urlApi, agenda } = getStore();
+				try {
+					const response = await fetch(`${urlApi}/fabricio/contacts/${id}`,
+						{
+							method: "PUT",
+							body: JSON.stringify(contact),
+							headers: { "Content-Type": "application/json" }
+						}
+					)
+					if (!response.ok) {
+						throw new Error("error editando el contacto");
+					}
+					const data = await response.json();
+					const newAgenda = agenda.map((element) => {
+						if (element.id == id) {
+							return data;
+						}
+						return element;
+					})
+					setStore({ agenda: newAgenda });
+					return true;
+				} catch (error) {
+					alert(error)
+				}
+			},
 		}
 	};
 };
